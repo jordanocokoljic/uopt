@@ -25,17 +25,27 @@ func TestErrorMessages(t *testing.T) {
 		{
 			name:     "InvalidShortFlag",
 			err:      uopterr.InvalidShortFlag("-0"),
-			expected: "flag must be a hyphen followed by 1 alphabetic character: -0",
+			expected: "short flag must be a hyphen followed by 1 alphabetic character: -0",
 		},
 		{
 			name:     "InvalidLongFlag",
 			err:      uopterr.InvalidLongFlag("--0a"),
-			expected: "flag must be two hyphens followed by an alphabetic character, then any number of alphanumeric characters: --0a",
+			expected: "long flag must be two hyphens followed by an alphabetic character, then any number of alphanumeric characters: --0a",
 		},
 		{
 			name:     "NoFlag",
 			err:      uopterr.NoFlag("opt"),
 			expected: "option must have a short or long flag: opt",
+		},
+		{
+			name:     "UnrecognizedOption",
+			err:      uopterr.UnrecognizedOption("--opt"),
+			expected: "unrecognized option: --opt",
+		},
+		{
+			name:     "UnrecognizedArgument",
+			err:      uopterr.UnrecognizedArgument("arg"),
+			expected: "unrecognized argument: arg",
 		},
 	}
 

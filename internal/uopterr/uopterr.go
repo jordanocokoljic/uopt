@@ -15,17 +15,29 @@ func (e DuplicateFlag) Error() string {
 type InvalidShortFlag string
 
 func (e InvalidShortFlag) Error() string {
-	return "flag must be a hyphen followed by 1 alphabetic character: " + string(e)
+	return "short flag must be a hyphen followed by 1 alphabetic character: " + string(e)
 }
 
 type InvalidLongFlag string
 
 func (e InvalidLongFlag) Error() string {
-	return "flag must be two hyphens followed by an alphabetic character, then any number of alphanumeric characters: " + string(e)
+	return "long flag must be two hyphens followed by an alphabetic character, then any number of alphanumeric characters: " + string(e)
 }
 
 type NoFlag string
 
 func (e NoFlag) Error() string {
 	return "option must have a short or long flag: " + string(e)
+}
+
+type UnrecognizedOption string
+
+func (e UnrecognizedOption) Error() string {
+	return "unrecognized option: " + string(e)
+}
+
+type UnrecognizedArgument string
+
+func (e UnrecognizedArgument) Error() string {
+	return "unrecognized argument: " + string(e)
 }

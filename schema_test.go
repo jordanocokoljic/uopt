@@ -15,6 +15,32 @@ func TestCommandSchema_Validate(t *testing.T) {
 		err    error
 	}{
 		{
+			name: "AllGood",
+			schema: uopt.CommandSchema{
+				Arguments: []string{
+					"summary",
+					"assigned",
+					"system",
+				},
+				Options: []uopt.OptionSchema{
+					{
+						Name:  "help",
+						Short: "-h",
+						Long:  "--help",
+					},
+					{
+						Name:  "priority",
+						Short: "-p",
+					},
+					{
+						Name: "database",
+						Long: "--database",
+					},
+				},
+			},
+			err: nil,
+		},
+		{
 			name: "DuplicateArgument",
 			schema: uopt.CommandSchema{
 				Arguments: []string{
@@ -145,10 +171,6 @@ func TestCommandSchema_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.schema.Validate()
-			if err == nil {
-				t.Fatal("expected error, got nil")
-			}
-
 			if !errors.Is(err, tt.err) {
 				t.Errorf("expected: %s\ngot: %s", tt.err, err)
 			}

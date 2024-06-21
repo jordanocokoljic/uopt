@@ -11,6 +11,7 @@ import (
 type CommandSchema struct {
 	Arguments []string
 	Options   []OptionSchema
+	Variadic  bool
 }
 
 type OptionSchema struct {
@@ -87,20 +88,32 @@ func (schema *CommandSchema) Validate() error {
 }
 
 func (schema *CommandSchema) Build() CommandOutline {
-	outline := CommandOutline{
-		arguments:     schema.Arguments,
-		optionCache:   make([]optionCacheLine, len(schema.Options)),
-		optionBinding: make(map[string]int),
+	var outline CommandOutline
+
+	if schema.Arguments != nil && len(schema.Arguments) > 0 {
+		outline.arguments = schema.Arguments
 	}
 
-	for i, option := range schema.Options {
-		outline.optionCache[i] = optionCacheLine{
-			name: option.Name,
+	if schema.Options != nil && len(schema.Options) > 0 {
+		outline.optionCache = make([]optionCacheLine, len(schema.Options))
+		outline.optionBinding = make(map[string]int)
+
+		for i, option := range schema.Options {
+			outline.optionCache[i] = optionCacheLine{
+				name: option.Name,
+			}
+
+			if option.Short != "" {
+				outline.optionBinding[option.Short[1:]] = i
+			}
+
+			if option.Long != "" {
+				outline.optionBinding[option.Long[2:]] = i
+			}
 		}
-
-		outline.optionBinding[option.Short] = i
-		outline.optionBinding[option.Long] = i
 	}
+
+	outline.variadic = schema.Variadic
 
 	return outline
 }
