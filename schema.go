@@ -15,9 +15,10 @@ type CommandSchema struct {
 }
 
 type OptionSchema struct {
-	Name  string
-	Short string
-	Long  string
+	Name    string
+	Short   string
+	Long    string
+	Capture bool
 }
 
 func (schema *CommandSchema) Validate() error {
@@ -100,7 +101,8 @@ func (schema *CommandSchema) Build() CommandOutline {
 
 		for i, option := range schema.Options {
 			outline.optionCache[i] = optionCacheLine{
-				name: option.Name,
+				name:    option.Name,
+				capture: option.Capture,
 			}
 
 			if option.Short != "" {

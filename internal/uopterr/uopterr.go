@@ -41,3 +41,9 @@ type UnrecognizedArgument string
 func (e UnrecognizedArgument) Error() string {
 	return "unrecognized argument: " + string(e)
 }
+
+type NoCaptureValue string
+
+func (e NoCaptureValue) Error() string {
+	return "option value was missing: " + string(e)
+}

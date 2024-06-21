@@ -47,6 +47,11 @@ func TestErrorMessages(t *testing.T) {
 			err:      uopterr.UnrecognizedArgument("arg"),
 			expected: "unrecognized argument: arg",
 		},
+		{
+			name:     "NoCaptureValue",
+			err:      uopterr.NoCaptureValue("--opt"),
+			expected: "option value was missing: --opt",
+		},
 	}
 
 	for _, tt := range tests {

@@ -121,7 +121,7 @@ func TestCommandOutline_ApplyTo(t *testing.T) {
 			},
 		},
 		{
-			name:      "CombinedShortOptions",
+			name:      "GroupedShortOptions",
 			arguments: []string{"-abc"},
 			schema: uopt.CommandSchema{
 				Options: []uopt.OptionSchema{
@@ -146,6 +146,152 @@ func TestCommandOutline_ApplyTo(t *testing.T) {
 					"c": "",
 				},
 			},
+		},
+		{
+			name:      "LongCaptureOption",
+			arguments: []string{"--capture", "value"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:    "capture",
+						Long:    "--capture",
+						Capture: true,
+					},
+				},
+			},
+			result: uopt.Result{
+				Options: map[string]string{
+					"capture": "value",
+				},
+			},
+		},
+		{
+			name:      "LongCaptureOptionMissingValue",
+			arguments: []string{"--capture"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:    "capture",
+						Long:    "--capture",
+						Capture: true,
+					},
+				},
+			},
+			err: uopterr.NoCaptureValue("--capture"),
+		},
+		{
+			name:      "ShortCaptureOption",
+			arguments: []string{"-c", "value"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:    "capture",
+						Short:   "-c",
+						Capture: true,
+					},
+				},
+			},
+			result: uopt.Result{
+				Options: map[string]string{
+					"capture": "value",
+				},
+			},
+		},
+		{
+			name:      "ShortCaptureGroupedOption",
+			arguments: []string{"-cvalue"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:    "capture",
+						Short:   "-c",
+						Capture: true,
+					},
+				},
+			},
+			result: uopt.Result{
+				Options: map[string]string{
+					"capture": "value",
+				},
+			},
+		},
+		{
+			name:      "ShortCaptureOptionMissingValue",
+			arguments: []string{"-c"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:    "capture",
+						Short:   "-c",
+						Capture: true,
+					},
+				},
+			},
+			err: uopterr.NoCaptureValue("-c"),
+		},
+		{
+			name:      "MultiShortCaptureOption",
+			arguments: []string{"-ac", "value"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:  "a",
+						Short: "-a",
+					},
+					{
+						Name:    "capture",
+						Short:   "-c",
+						Capture: true,
+					},
+				},
+			},
+			result: uopt.Result{
+				Options: map[string]string{
+					"a":       "",
+					"capture": "value",
+				},
+			},
+		},
+		{
+			name:      "MultiShortCaptureGroupedOption",
+			arguments: []string{"-acvalue"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:  "a",
+						Short: "-a",
+					},
+					{
+						Name:    "capture",
+						Short:   "-c",
+						Capture: true,
+					},
+				},
+			},
+			result: uopt.Result{
+				Options: map[string]string{
+					"a":       "",
+					"capture": "value",
+				},
+			},
+		},
+		{
+			name:      "MultiShortCaptureOptionMissingValue",
+			arguments: []string{"-ac"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:  "a",
+						Short: "-a",
+					},
+					{
+						Name:    "capture",
+						Short:   "-c",
+						Capture: true,
+					},
+				},
+			},
+			err: uopterr.NoCaptureValue("-ac"),
 		},
 	}
 

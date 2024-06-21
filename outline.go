@@ -15,7 +15,8 @@ type CommandOutline struct {
 }
 
 type optionCacheLine struct {
-	name string
+	name    string
+	capture bool
 }
 
 func (outline CommandOutline) ApplyTo(args []string) (Result, error) {
@@ -38,7 +39,19 @@ func (outline CommandOutline) ApplyTo(args []string) (Result, error) {
 					return Result{}, uopterr.UnrecognizedOption(args[i])
 				}
 
-				result.Options[outline.optionCache[index].name] = ""
+				opt := outline.optionCache[index]
+
+				var value string
+				if opt.capture {
+					if i+1 >= len(args) {
+						return Result{}, uopterr.NoCaptureValue(args[i])
+					}
+
+					value = args[i+1]
+					i++
+				}
+
+				result.Options[opt.name] = value
 				continue
 			}
 
@@ -49,7 +62,24 @@ func (outline CommandOutline) ApplyTo(args []string) (Result, error) {
 						return Result{}, uopterr.UnrecognizedOption(args[i])
 					}
 
-					result.Options[outline.optionCache[index].name] = ""
+					opt := outline.optionCache[index]
+
+					if opt.capture {
+						if j+1 < len(args[i]) {
+							result.Options[opt.name] = args[i][j+1:]
+							break
+						}
+
+						if j >= len(args[i])-1 && i+1 < len(args) {
+							result.Options[opt.name] = args[i+1]
+							i++
+							break
+						}
+
+						return Result{}, uopterr.NoCaptureValue(args[i])
+					}
+
+					result.Options[opt.name] = ""
 				}
 
 				continue
