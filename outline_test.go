@@ -293,6 +293,42 @@ func TestCommandOutline_ApplyTo(t *testing.T) {
 			},
 			err: uopterr.NoCaptureValue("-ac"),
 		},
+		{
+			name:      "LongOptionCapturePossibleOption",
+			arguments: []string{"--capture", "-o"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:    "capture",
+						Long:    "--capture",
+						Capture: true,
+					},
+					{
+						Name:  "o",
+						Short: "-o",
+					},
+				},
+			},
+			err: uopterr.NoCaptureValue("--capture"),
+		},
+		{
+			name:      "ShortOptionCapturePossibleOption",
+			arguments: []string{"-c", "-o"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:    "capture",
+						Short:   "-c",
+						Capture: true,
+					},
+					{
+						Name:  "o",
+						Short: "-o",
+					},
+				},
+			},
+			err: uopterr.NoCaptureValue("-c"),
+		},
 	}
 
 	for _, tt := range tests {

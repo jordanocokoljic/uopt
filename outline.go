@@ -47,6 +47,10 @@ func (outline CommandOutline) ApplyTo(args []string) (Result, error) {
 						return Result{}, uopterr.NoCaptureValue(args[i])
 					}
 
+					if strings.HasPrefix(args[i+1], "-") {
+						return Result{}, uopterr.NoCaptureValue(args[i])
+					}
+
 					value = args[i+1]
 					i++
 				}
@@ -71,6 +75,10 @@ func (outline CommandOutline) ApplyTo(args []string) (Result, error) {
 						}
 
 						if j >= len(args[i])-1 && i+1 < len(args) {
+							if strings.HasPrefix(args[i+1], "-") {
+								return Result{}, uopterr.NoCaptureValue(args[i])
+							}
+
 							result.Options[opt.name] = args[i+1]
 							i++
 							break
