@@ -43,12 +43,15 @@ func (outline CommandOutline) ApplyTo(args []string) (Result, error) {
 			}
 
 			if strings.HasPrefix(args[i], "-") {
-				index, ok := outline.optionBinding[args[i][1:]]
-				if !ok {
-					return Result{}, uopterr.UnrecognizedOption(args[i])
+				for j := 1; j < len(args[i]); j++ {
+					index, ok := outline.optionBinding[args[i][j:j+1]]
+					if !ok {
+						return Result{}, uopterr.UnrecognizedOption(args[i])
+					}
+
+					result.Options[outline.optionCache[index].name] = ""
 				}
 
-				result.Options[outline.optionCache[index].name] = ""
 				continue
 			}
 		}

@@ -120,6 +120,33 @@ func TestCommandOutline_ApplyTo(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:      "CombinedShortOptions",
+			arguments: []string{"-abc"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:  "a",
+						Short: "-a",
+					},
+					{
+						Name:  "b",
+						Short: "-b",
+					},
+					{
+						Name:  "c",
+						Short: "-c",
+					},
+				},
+			},
+			result: uopt.Result{
+				Options: map[string]string{
+					"a": "",
+					"b": "",
+					"c": "",
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -135,7 +162,9 @@ func TestCommandOutline_ApplyTo(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(result, tt.result) {
-				t.Fatalf("result does not match:\n\thave %#v\n\twant: %#v", result, tt.result)
+				t.Fatalf(
+					"result does not match:\n\thave %#v\n\twant: %#v",
+					result, tt.result)
 			}
 		})
 	}
