@@ -20,7 +20,10 @@ type optionCacheLine struct {
 }
 
 func (outline CommandOutline) ApplyTo(args []string) (Result, error) {
-	var result Result
+	var (
+		result       Result
+		parseOptions = true
+	)
 
 	if outline.optionCache != nil {
 		result.Options = make(map[string]string)
@@ -32,7 +35,12 @@ func (outline CommandOutline) ApplyTo(args []string) (Result, error) {
 
 	i := 0
 	for ; i < len(args); i++ {
-		if result.Options != nil {
+		if result.Options != nil && parseOptions {
+			if args[i] == "--" {
+				parseOptions = false
+				continue
+			}
+
 			if strings.HasPrefix(args[i], "--") {
 				index, ok := outline.optionBinding[args[i][2:]]
 				if !ok {

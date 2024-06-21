@@ -329,6 +329,31 @@ func TestCommandOutline_ApplyTo(t *testing.T) {
 			},
 			err: uopterr.NoCaptureValue("-c"),
 		},
+		{
+			name:      "DoubleDashStopsOptionParsing",
+			arguments: []string{"-a", "--", "-b"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:  "a",
+						Short: "-a",
+					},
+					{
+						Name:  "b",
+						Short: "-b",
+					},
+				},
+				Variadic: true,
+			},
+			result: uopt.Result{
+				Options: map[string]string{
+					"a": "",
+				},
+				Variadic: []string{
+					"-b",
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
