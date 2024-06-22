@@ -42,7 +42,12 @@ func (outline CommandOutline) ApplyTo(args []string) (Result, error) {
 			}
 
 			if strings.HasPrefix(args[i], "--") {
-				index, ok := outline.optionBinding[args[i][2:]]
+				idx := strings.Index(args[i], "=")
+				if idx == -1 {
+					idx = len(args[i])
+				}
+
+				index, ok := outline.optionBinding[args[i][2:idx]]
 				if !ok {
 					return Result{}, uopterr.UnrecognizedOption(args[i])
 				}
@@ -51,16 +56,18 @@ func (outline CommandOutline) ApplyTo(args []string) (Result, error) {
 
 				var value string
 				if opt.capture {
-					if i+1 >= len(args) {
-						return Result{}, uopterr.NoCaptureValue(args[i])
+					if idx < len(args[i]) {
+						result.Options[opt.name] = args[i][idx+1:]
+						continue
 					}
 
-					if strings.HasPrefix(args[i+1], "-") {
-						return Result{}, uopterr.NoCaptureValue(args[i])
+					if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+						result.Options[opt.name] = args[i+1]
+						i++
+						continue
 					}
 
-					value = args[i+1]
-					i++
+					return Result{}, uopterr.NoCaptureValue(args[i])
 				}
 
 				result.Options[opt.name] = value

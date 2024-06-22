@@ -166,6 +166,24 @@ func TestCommandOutline_ApplyTo(t *testing.T) {
 			},
 		},
 		{
+			name:      "LongCaptureOptionEquals",
+			arguments: []string{"--capture=value"},
+			schema: uopt.CommandSchema{
+				Options: []uopt.OptionSchema{
+					{
+						Name:    "capture",
+						Long:    "--capture",
+						Capture: true,
+					},
+				},
+			},
+			result: uopt.Result{
+				Options: map[string]string{
+					"capture": "value",
+				},
+			},
+		},
+		{
 			name:      "LongCaptureOptionMissingValue",
 			arguments: []string{"--capture"},
 			schema: uopt.CommandSchema{
