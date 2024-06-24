@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/jordanocokoljic/uopt"
+	"github.com/jordanocokoljic/uopt/v2"
 )
 
 func TestVisit(t *testing.T) {
