@@ -128,15 +128,18 @@ func Visit(visitor Visitor, arguments []string) {
 }
 
 func isLongOption(arg string) bool {
-	return strings.HasPrefix(arg, "--") && arg != "--"
+	return strings.HasPrefix(arg, "--") &&
+		len(arg) > 2 && isAlpha(arg[2])
 }
 
 func isShortOption(arg string) bool {
-	return strings.HasPrefix(arg, "-") && arg != "-"
+	return strings.HasPrefix(arg, "-") &&
+		len(arg) > 1 && isAlpha(arg[1])
 }
 
 func isOptionValue(arg string) bool {
-	return arg != "-" && !isLongOption(arg) && !isShortOption(arg)
+	return arg != "-" && arg != "--" &&
+		!isLongOption(arg) && !isShortOption(arg)
 }
 
 func isAlpha(str byte) bool {

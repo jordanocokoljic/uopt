@@ -220,6 +220,26 @@ func TestVisit_Options(t *testing.T) {
 	}
 }
 
+func TestVisit_HandlesArgumentsThatLookLikeOptions(t *testing.T) {
+	var collected []string
+	visitor := Visitor{
+		Flag:   func(_ string) bool { return true },
+		Option: func(_ string, _ string) {},
+		Argument: func(arg string) {
+			collected = append(collected, arg)
+		},
+	}
+
+	arguments := []string{"-1", "-.", "--1", "--."}
+	expected := []string{"-1", "-.", "--1", "--."}
+
+	uopt.Visit(visitor, arguments)
+
+	if !reflect.DeepEqual(collected, expected) {
+		t.Errorf("got %v, want %v", collected, expected)
+	}
+}
+
 type Visitor struct {
 	Argument func(string)
 	Flag     func(string) bool
