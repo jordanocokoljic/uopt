@@ -1,9 +1,10 @@
 package uopt_test
 
 import (
-	"github.com/jordanocokoljic/uopt"
 	"reflect"
 	"testing"
+
+	"github.com/jordanocokoljic/uopt"
 )
 
 func TestVisit(t *testing.T) {
