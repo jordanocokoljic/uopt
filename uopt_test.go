@@ -226,6 +226,6 @@ type Visitor struct {
 	Option   func(string, string)
 }
 
-func (v Visitor) VisitArgument(arg string)      { v.Argument(arg) }
 func (v Visitor) VisitFlag(arg string) bool     { return v.Flag(arg) }
 func (v Visitor) VisitOption(arg, value string) { v.Option(arg, value) }
+func (v Visitor) VisitArgument(arg string)      { v.Argument(arg) }
