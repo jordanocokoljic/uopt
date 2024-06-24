@@ -27,12 +27,14 @@ func Visit(visitor Visitor, arguments []string) {
 					idx = len(arg)
 				}
 
-				if visitor.VisitFlag(arg[2:idx]) {
+				opt := arg[2:idx]
+
+				if visitor.VisitFlag(opt) {
 					continue
 				}
 
 				if idx < len(arg) {
-					visitor.VisitOption(arg[2:idx], arg[idx+1:])
+					visitor.VisitOption(opt, arg[idx+1:])
 					continue
 				}
 
@@ -42,28 +44,34 @@ func Visit(visitor Visitor, arguments []string) {
 					i++
 				}
 
-				visitor.VisitOption(arg[2:], value)
+				visitor.VisitOption(opt, value)
 				continue
 			}
 
 			if isShortOption(arg) {
 				for j := 1; j < len(arg); j++ {
-					if visitor.VisitFlag(arg[j : j+1]) {
+					opt := arg[j : j+1]
+
+					if !isAlpha(opt[0]) {
+						continue
+					}
+
+					if visitor.VisitFlag(opt) {
 						continue
 					}
 
 					if j >= len(arg)-1 {
 						if !last && isOptionValue(arguments[i+1]) {
-							visitor.VisitOption(arg[j:j+1], arguments[i+1])
+							visitor.VisitOption(opt, arguments[i+1])
 							i++
 							continue
 						}
 
-						visitor.VisitOption(arg[j:j+1], "")
+						visitor.VisitOption(opt, "")
 						continue
 					}
 
-					visitor.VisitOption(arg[j:j+1], arg[j+1:])
+					visitor.VisitOption(opt, arg[j+1:])
 					break
 				}
 
@@ -85,4 +93,8 @@ func isShortOption(arg string) bool {
 
 func isOptionValue(arg string) bool {
 	return arg != "-" && !isLongOption(arg) && !isShortOption(arg)
+}
+
+func isAlpha(str byte) bool {
+	return ('a' <= str && str <= 'z') || ('A' <= str && str <= 'Z')
 }

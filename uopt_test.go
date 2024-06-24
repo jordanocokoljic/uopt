@@ -112,8 +112,29 @@ func TestVisit_Flags(t *testing.T) {
 		Argument: func(_ string) {},
 	}
 
-	args := []string{"-abc", "-d", "--efg", "--", "-hij", "-k", "--lmn"}
-	expected := []string{"a", "b", "c", "d", "efg"}
+	args := []string{
+		"-abc",
+		"-d",
+		"--efg",
+		"-zX1y-wv",
+		"--",
+		"-hij",
+		"-k",
+		"--lmn",
+	}
+
+	expected := []string{
+		"a",
+		"b",
+		"c",
+		"d",
+		"efg",
+		"z",
+		"X",
+		"y",
+		"w",
+		"v",
+	}
 
 	uopt.Visit(visitor, args)
 
