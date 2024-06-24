@@ -152,7 +152,13 @@ func TestVisit_Options(t *testing.T) {
 	}{
 		{
 			name: "Basic",
-			args: []string{"-afile.txt", "-z", "image.png", "--in", "oneway", "--out=another", "--blank="},
+			args: []string{
+				"-afile.txt",
+				"-z", "image.png",
+				"--in", "oneway",
+				"--out=another",
+				"--blank=",
+			},
 			expected: map[string]string{
 				"a":     "file.txt",
 				"z":     "image.png",
