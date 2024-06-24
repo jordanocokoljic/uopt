@@ -35,10 +35,10 @@ func TestVisit(t *testing.T) {
 		"-dbS", "5432",
 		"-Jfile.txt",
 		"--store",
-		"--Remove-from",
-		"temp",
+		"--Remove-from", "temp",
 		"in.sql",
 		"--Notfound=error",
+		"-xfGcapture-this",
 		"--",
 		"-Z",
 		"--zero",
@@ -56,6 +56,8 @@ func TestVisit(t *testing.T) {
 		"d",
 		"b",
 		"store",
+		"x",
+		"f",
 	}
 
 	expectedOptions := map[string]string{
@@ -64,6 +66,7 @@ func TestVisit(t *testing.T) {
 		"J":           "file.txt",
 		"Remove-from": "temp",
 		"Notfound":    "error",
+		"G":           "capture-this",
 	}
 
 	uopt.Visit(visitor, args)
