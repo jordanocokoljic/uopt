@@ -1,6 +1,9 @@
 package uopt
 
-import "strings"
+import (
+	"errors"
+	"strings"
+)
 
 // A Visitor is used to handle the "events" emitted by the Visit function.
 type Visitor interface {
@@ -8,22 +11,28 @@ type Visitor interface {
 	//The flag argument will be the argument, excepting the leading hyphen(s).
 	// Because the Visit function cannot distinguish between arguments intended
 	// to be flags or options, it is up to VisitFlag to do so.
-	// Returning true hints to Visit that the argument was a flag, returning
-	// false indicates that there is a value that should be captured through
+	// Returning nil hints to Visit that the argument was a flag, returning
+	// IsOption indicates that there is a value that should be captured through
 	// VisitOption.
-	VisitFlag(flag string) (wasFlag bool)
+	VisitFlag(flag string) error
 
-	// VisitOption is called for any argument that VisitFlag returned false for.
+	// VisitOption is called for any argument where VisitFlag returned IsOption.
 	// The option argument, like VisitFlag will be the argument omitting any
 	// prefixed hyphen(s). The value will be captured from the arguments given
 	// to Visit, see it for more details.
-	VisitOption(option string, value string)
+	VisitOption(option string, value string) error
 
 	// VisitArgument will be called for any value that isn't a flag, or isn't
 	// captured by an option. The exception to this is '--' which is used to
 	// indicate that option parsing should stop.
-	VisitArgument(argument string)
+	VisitArgument(argument string) error
 }
+
+const (
+	// IsOption can be returned by calls to Visitor.VisitFlag to indicate that
+	// the argument should instead be handled like an option.
+	IsOption visitError = iota
+)
 
 // Visit will step through each of the arguments calling the appropriate
 // methods on the Visitor.
@@ -52,7 +61,10 @@ type Visitor interface {
 //
 // If while iterating over a group of short options, Visit encounters a
 // non-alphabetic character, it will simply be ignored.
-func Visit(visitor Visitor, arguments []string) {
+//
+// Visit will only return an error if the Visitor returns an error that isn't
+// IsOption.
+func Visit(visitor Visitor, arguments []string) error {
 	visitOption := true
 
 	for i := 0; i < len(arguments); i++ {
@@ -73,12 +85,21 @@ func Visit(visitor Visitor, arguments []string) {
 
 				opt := arg[2:idx]
 
-				if visitor.VisitFlag(opt) {
+				err := visitor.VisitFlag(opt)
+				if err == nil {
 					continue
 				}
 
+				if !errors.Is(err, IsOption) {
+					return err
+				}
+
 				if idx < len(arg) {
-					visitor.VisitOption(opt, arg[idx+1:])
+					err = visitor.VisitOption(opt, arg[idx+1:])
+					if err != nil {
+						return err
+					}
+
 					continue
 				}
 
@@ -88,7 +109,11 @@ func Visit(visitor Visitor, arguments []string) {
 					i++
 				}
 
-				visitor.VisitOption(opt, value)
+				err = visitor.VisitOption(opt, value)
+				if err != nil {
+					return err
+				}
+
 				continue
 			}
 
@@ -100,22 +125,39 @@ func Visit(visitor Visitor, arguments []string) {
 						continue
 					}
 
-					if visitor.VisitFlag(opt) {
+					err := visitor.VisitFlag(opt)
+					if err == nil {
 						continue
+					}
+
+					if !errors.Is(err, IsOption) {
+						return err
 					}
 
 					if j >= len(arg)-1 {
 						if !last && isOptionValue(arguments[i+1]) {
-							visitor.VisitOption(opt, arguments[i+1])
+							err = visitor.VisitOption(opt, arguments[i+1])
+							if err != nil {
+								return err
+							}
+
 							i++
 							continue
 						}
 
-						visitor.VisitOption(opt, "")
+						err = visitor.VisitOption(opt, "")
+						if err != nil {
+							return err
+						}
+
 						continue
 					}
 
-					visitor.VisitOption(opt, arg[j+1:])
+					err = visitor.VisitOption(opt, arg[j+1:])
+					if err != nil {
+						return err
+					}
+
 					break
 				}
 
@@ -123,7 +165,23 @@ func Visit(visitor Visitor, arguments []string) {
 			}
 		}
 
-		visitor.VisitArgument(arg)
+		err := visitor.VisitArgument(arg)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type visitError int
+
+func (e visitError) Error() string {
+	switch {
+	case errors.Is(e, IsOption):
+		return "flag should have been interpreted as an option"
+	default:
+		panic("unsupported error code")
 	}
 }
 

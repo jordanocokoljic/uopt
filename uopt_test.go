@@ -13,19 +13,21 @@ func TestVisit(t *testing.T) {
 	options := make(map[string]string)
 
 	visitor := Visitor{
-		Argument: func(s string) {
+		Argument: func(s string) error {
 			arguments = append(arguments, s)
+			return nil
 		},
-		Flag: func(opt string) bool {
+		Flag: func(opt string) error {
 			if 'A' <= opt[0] && opt[0] <= 'Z' {
-				return false
+				return uopt.IsOption
 			}
 
 			flags = append(flags, opt)
-			return true
+			return nil
 		},
-		Option: func(opt string, val string) {
+		Option: func(opt string, val string) error {
 			options[opt] = val
+			return nil
 		},
 	}
 
@@ -88,8 +90,9 @@ func TestVisit(t *testing.T) {
 func TestVisit_Arguments(t *testing.T) {
 	var collected []string
 	visitor := Visitor{
-		Argument: func(argument string) {
+		Argument: func(argument string) error {
 			collected = append(collected, argument)
+			return nil
 		},
 	}
 
@@ -106,11 +109,11 @@ func TestVisit_Arguments(t *testing.T) {
 func TestVisit_Flags(t *testing.T) {
 	var collected []string
 	visitor := Visitor{
-		Flag: func(option string) bool {
+		Flag: func(option string) error {
 			collected = append(collected, option)
-			return true
+			return nil
 		},
-		Argument: func(_ string) {},
+		Argument: func(_ string) error { return nil },
 	}
 
 	args := []string{
@@ -211,10 +214,11 @@ func TestVisit_Options(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			collected := make(map[string]string)
 			visitor := Visitor{
-				Flag:     func(_ string) bool { return false },
-				Argument: func(_ string) {},
-				Option: func(option string, value string) {
+				Flag:     func(_ string) error { return uopt.IsOption },
+				Argument: func(_ string) error { return nil },
+				Option: func(option string, value string) error {
 					collected[option] = value
+					return nil
 				},
 			}
 
@@ -230,10 +234,11 @@ func TestVisit_Options(t *testing.T) {
 func TestVisit_HandlesArgumentsThatLookLikeOptions(t *testing.T) {
 	var collected []string
 	visitor := Visitor{
-		Flag:   func(_ string) bool { return true },
-		Option: func(_ string, _ string) {},
-		Argument: func(arg string) {
+		Flag:   func(_ string) error { return nil },
+		Option: func(_ string, _ string) error { return nil },
+		Argument: func(arg string) error {
 			collected = append(collected, arg)
+			return nil
 		},
 	}
 
@@ -248,11 +253,11 @@ func TestVisit_HandlesArgumentsThatLookLikeOptions(t *testing.T) {
 }
 
 type Visitor struct {
-	Argument func(string)
-	Flag     func(string) bool
-	Option   func(string, string)
+	Argument func(string) error
+	Flag     func(string) error
+	Option   func(string, string) error
 }
 
-func (v Visitor) VisitFlag(arg string) bool     { return v.Flag(arg) }
-func (v Visitor) VisitOption(arg, value string) { v.Option(arg, value) }
-func (v Visitor) VisitArgument(arg string)      { v.Argument(arg) }
+func (v Visitor) VisitFlag(o string) error      { return v.Flag(o) }
+func (v Visitor) VisitOption(o, c string) error { return v.Option(o, c) }
+func (v Visitor) VisitArgument(a string) error  { return v.Argument(a) }
