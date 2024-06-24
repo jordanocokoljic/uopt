@@ -13,6 +13,7 @@ func Visit(visitor Visitor, arguments []string) {
 
 	for i := 0; i < len(arguments); i++ {
 		arg := arguments[i]
+		last := i+1 == len(arguments)
 
 		if visitOption {
 			if arg == "--" {
@@ -36,7 +37,7 @@ func Visit(visitor Visitor, arguments []string) {
 				}
 
 				var value string
-				if i+1 < len(arguments) && isOptionValue(arguments[i+1]) {
+				if !last && isOptionValue(arguments[i+1]) {
 					value = arguments[i+1]
 					i++
 				}
@@ -52,7 +53,7 @@ func Visit(visitor Visitor, arguments []string) {
 					}
 
 					if j >= len(arg)-1 {
-						if i+1 < len(arguments) && isOptionValue(arguments[i+1]) {
+						if !last && isOptionValue(arguments[i+1]) {
 							visitor.VisitOption(arg[j:j+1], arguments[i+1])
 							i++
 							continue
