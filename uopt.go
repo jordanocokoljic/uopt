@@ -31,7 +31,7 @@ type Visitor interface {
 const (
 	// IsOption can be returned by calls to Visitor.VisitFlag to indicate that
 	// the argument should instead be handled like an option.
-	IsOption visitError = iota
+	IsOption constError = "uopt: flag should have been interpreted as an option"
 )
 
 // Visit will step through each of the arguments calling the appropriate
@@ -174,15 +174,10 @@ func Visit(visitor Visitor, arguments []string) error {
 	return nil
 }
 
-type visitError int
+type constError string
 
-func (e visitError) Error() string {
-	switch {
-	case errors.Is(e, IsOption):
-		return "flag should have been interpreted as an option"
-	default:
-		panic("unsupported error code")
-	}
+func (e constError) Error() string {
+	return string(e)
 }
 
 func isLongOption(arg string) bool {
