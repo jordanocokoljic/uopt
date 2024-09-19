@@ -36,6 +36,11 @@ const (
 	// error from within Visitor.VisitFlag will not cause a call to Visit to
 	// pass it to the caller, but returning it from anywhere else will.
 	IsOption constError = "uopt: flag should have been interpreted as an option"
+
+	// Halt can be returned by implementations of Visitor to indicate that the
+	// iteration over arguments should be terminated early. Returning this will
+	// not cause Visit to return an error to the caller.
+	Halt constError = "uopt: argument interation was terminated early"
 )
 
 // Visit will step through each of the arguments calling the appropriate
@@ -94,12 +99,20 @@ func Visit(visitor Visitor, arguments []string) error {
 					continue
 				}
 
+				if errors.Is(err, Halt) {
+					return nil
+				}
+
 				if !errors.Is(err, IsOption) {
 					return err
 				}
 
 				if idx < len(arg) {
 					err = visitor.VisitOption(opt, arg[idx+1:])
+					if errors.Is(err, Halt) {
+						return nil
+					}
+
 					if err != nil {
 						return err
 					}
@@ -114,6 +127,10 @@ func Visit(visitor Visitor, arguments []string) error {
 				}
 
 				err = visitor.VisitOption(opt, value)
+				if errors.Is(err, Halt) {
+					return nil
+				}
+
 				if err != nil {
 					return err
 				}
@@ -134,22 +151,26 @@ func Visit(visitor Visitor, arguments []string) error {
 						continue
 					}
 
+					if errors.Is(err, Halt) {
+						return nil
+					}
+
 					if !errors.Is(err, IsOption) {
 						return err
 					}
 
 					if j >= len(arg)-1 {
+						var value string
 						if !last && isOptionValue(arguments[i+1]) {
-							err = visitor.VisitOption(opt, arguments[i+1])
-							if err != nil {
-								return err
-							}
-
+							value = arguments[i+1]
 							i++
-							continue
 						}
 
-						err = visitor.VisitOption(opt, "")
+						err = visitor.VisitOption(opt, value)
+						if errors.Is(err, Halt) {
+							return nil
+						}
+
 						if err != nil {
 							return err
 						}
@@ -158,6 +179,10 @@ func Visit(visitor Visitor, arguments []string) error {
 					}
 
 					err = visitor.VisitOption(opt, arg[j+1:])
+					if errors.Is(err, Halt) {
+						return nil
+					}
+
 					if err != nil {
 						return err
 					}
@@ -170,6 +195,10 @@ func Visit(visitor Visitor, arguments []string) error {
 		}
 
 		err := visitor.VisitArgument(arg)
+		if errors.Is(err, Halt) {
+			return nil
+		}
+
 		if err != nil {
 			return err
 		}

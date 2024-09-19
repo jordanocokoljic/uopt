@@ -12,7 +12,7 @@ func TestVisit(t *testing.T) {
 	flags := make([]string, 0)
 	options := make(map[string]string)
 
-	visitor := Visitor{
+	visitor := testVisitor{
 		Argument: func(s string) error {
 			arguments = append(arguments, s)
 			return nil
@@ -89,7 +89,7 @@ func TestVisit(t *testing.T) {
 
 func TestVisit_Arguments(t *testing.T) {
 	var collected []string
-	visitor := Visitor{
+	visitor := testVisitor{
 		Argument: func(argument string) error {
 			collected = append(collected, argument)
 			return nil
@@ -108,7 +108,7 @@ func TestVisit_Arguments(t *testing.T) {
 
 func TestVisit_Flags(t *testing.T) {
 	var collected []string
-	visitor := Visitor{
+	visitor := testVisitor{
 		Flag: func(option string) error {
 			collected = append(collected, option)
 			return nil
@@ -213,7 +213,7 @@ func TestVisit_Options(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			collected := make(map[string]string)
-			visitor := Visitor{
+			visitor := testVisitor{
 				Flag:     func(_ string) error { return uopt.IsOption },
 				Argument: func(_ string) error { return nil },
 				Option: func(option string, value string) error {
@@ -233,7 +233,7 @@ func TestVisit_Options(t *testing.T) {
 
 func TestVisit_HandlesArgumentsThatLookLikeOptions(t *testing.T) {
 	var collected []string
-	visitor := Visitor{
+	visitor := testVisitor{
 		Flag:   func(_ string) error { return nil },
 		Option: func(_ string, _ string) error { return nil },
 		Argument: func(arg string) error {
@@ -252,12 +252,124 @@ func TestVisit_HandlesArgumentsThatLookLikeOptions(t *testing.T) {
 	}
 }
 
-type Visitor struct {
-	Argument func(string) error
-	Flag     func(string) error
-	Option   func(string, string) error
+func TestVisit_TerminatesOnHalt(t *testing.T) {
+	tests := []struct {
+		name      string
+		arguments []string
+		index     int
+	}{
+		{
+			name:      "ForArgument",
+			arguments: []string{"halt", "--hello=world"},
+		},
+		{
+			name:      "ForAggregateFlag",
+			arguments: []string{"-gh", "--hello=world"},
+			index:     1,
+		},
+		{
+			name:      "ForStandaloneShortFlag",
+			arguments: []string{"-h", "--hello=world"},
+		},
+		{
+			name:      "ForStandaloneLongFlag",
+			arguments: []string{"--halt", "--hello=world"},
+		},
+		{
+			name:      "ForAggregateShortOption",
+			arguments: []string{"-chalt", "--hello=world"},
+		},
+		{
+			name:      "ForSeparateShortOption",
+			arguments: []string{"-c", "halt", "--hello=world"},
+		},
+		{
+			name:      "ForSeparateLongOption",
+			arguments: []string{"--cmd", "halt", "--hello=world"},
+		},
+		{
+			name:      "ForEqualsLongOption",
+			arguments: []string{"--cmd=halt", "--hello=world"},
+		},
+		{
+			name:      "ForWhenShortOptionIsIncomplete",
+			arguments: []string{"-b", "-c", "--hello=world"},
+		},
+		{
+			name:      "ForWhenLongOptionIsIncomplete",
+			arguments: []string{"--blank", "-c", "--hello=world"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var count int
+
+			// This visitor will halt on any of the following conditions:
+			//
+			// The argument 'halt' is provided.
+			// The flags -h or --halt are provided
+			// The option -c or --cmd are provided with the value 'halt'
+			// The option -b or --blank are provided and an empty string is the value
+			visitor := testVisitor{
+				Argument: func(a string) error {
+					count++
+
+					if a == "halt" {
+						return uopt.Halt
+					}
+
+					return nil
+				},
+				Flag: func(f string) error {
+					if f == "h" || f == "halt" {
+						count++
+						return uopt.Halt
+					}
+
+					if f == "c" || f == "cmd" || f == "b" || f == "blank" {
+						return uopt.IsOption
+					}
+
+					count++
+					return nil
+				},
+				Option: func(o, v string) error {
+					count++
+
+					if (o == "c" || o == "cmd") && v == "halt" {
+						return uopt.Halt
+					}
+
+					if (o == "b" || o == "blank") && v == "" {
+						return uopt.Halt
+					}
+
+					return nil
+				},
+			}
+
+			err := uopt.Visit(visitor, test.arguments)
+			if err != nil {
+				t.Fatalf("visit returned an error: %s", err.Error())
+			}
+
+			if count-1 != test.index {
+				t.Errorf(
+					"argument count mismatch: %d vs %d",
+					count, test.index,
+				)
+			}
+		})
+	}
 }
 
-func (v Visitor) VisitFlag(o string) error      { return v.Flag(o) }
-func (v Visitor) VisitOption(o, c string) error { return v.Option(o, c) }
-func (v Visitor) VisitArgument(a string) error  { return v.Argument(a) }
+type testVisitor struct {
+	Flag     func(f string) error
+	Option   func(o string, v string) error
+	Argument func(a string) error
+}
+
+func (t testVisitor) VisitFlag(f string) error      { return t.Flag(f) }
+func (t testVisitor) VisitOption(o, v string) error { return t.Option(o, v) }
+func (t testVisitor) VisitArgument(a string) error  { return t.Argument(a) }
