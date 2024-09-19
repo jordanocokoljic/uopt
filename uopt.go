@@ -1,3 +1,5 @@
+// Package uopt exposes functionality for writing a visitor-esque command line
+// argument parser.
 package uopt
 
 import (
@@ -30,7 +32,9 @@ type Visitor interface {
 
 const (
 	// IsOption can be returned by calls to Visitor.VisitFlag to indicate that
-	// the argument should instead be handled like an option.
+	// the argument should instead be handled like an option. Returning this
+	// error from within Visitor.VisitFlag will not cause a call to Visit to
+	// pass it to the caller, but returning it from anywhere else will.
 	IsOption constError = "uopt: flag should have been interpreted as an option"
 )
 
@@ -44,17 +48,17 @@ const (
 //
 // If the option is long (prefixed with '--') it will check if an '=' is also
 // present. If it is, Visitor.VisitFlag will be called containing all the
-// characters after '--' and before '='. If it returns true, then characters
-// after '=' are ignored and Visit will move onto the next argument. If it
-// returns false, Visitor.VisitOption will be called with all the characters
-// after the '='. If there is no '=' present, and Visitor.VisitFlag returns
-// false, then Visitor.VisitOption will instead be called with the next
+// characters after '--' and before '='.  If it returns IsOption,
+// Visitor.VisitOption will be called with all the characters after the '='.
+// Otherwise, the characters after '=' are ignored and Visit will move onto the
+// next argument. If there is no '=' present, and Visitor.VisitFlag returns
+// IsOption, then Visitor.VisitOption will instead be called with the next
 // argument as the value, or an empty string if there are no more.
 //
 // If the option is short (prefixed with '-') it will begin to iterate over
 // each of the characters in the group, calling Visitor.VisitFlag for each one.
-// If any call returns false, it will see if there are any characters left to
-// iterate over. If there are, Visitor.VisitOption will be called with the
+// If any call returns IsOption, it will see if there are any characters left
+// to iterate over. If there are, Visitor.VisitOption will be called with the
 // remaining characters as the value. If not, then Visitor.VisitOption will be
 // called with the next argument as the value, or an empty string if there are
 // none.

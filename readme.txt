@@ -11,7 +11,7 @@ Install
 
 In order to get started, use `go` to install the library.
 
-   go get github.com/jordanocokoljic/uopt
+   go get github.com/jordanocokoljic/uopt/v2
 
 Then write an implementation of the uopt.Visitor interface. Then provide the
 Visitor implementation, and a slice of strings to uopt.Visit and uopt will
